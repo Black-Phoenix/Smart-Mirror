@@ -71,7 +71,7 @@ class GUI:
         pygame.init()
         self.clock = pygame.time.Clock()
         infoObject = pygame.display.Info()
-        self.size = self.weight, self.height = [640, 400]#[infoObject.current_w, infoObject.current_h]
+        self.size = self.weight, self.height = [infoObject.current_w, infoObject.current_h]
         # objects
         self.weather_object = weather.Weather(int(0.8 / 12.0 * self.size[1]))
         self.calender_object = calender.Calender(1)  # todo not hardcoded
@@ -555,9 +555,9 @@ class GUI:
             # add the box to the right of the screen
         self.calender_events_draw()
 
-    def draw_boundaries(self, width=1, dash_length=10):
-        origin = Point([self.size[0], self.size[1]])
-        target = Point([self.size[0], 0])
+    def draw_boundaries(self, start, end, width=1, dash_length=10):
+        origin = start
+        target = end
         displacement = target - origin
         length = len(displacement)
         slope = displacement / length
@@ -568,13 +568,15 @@ class GUI:
             pygame.draw.line(self._display_surf, self.white, start.get(), end.get(), width)
 
     def on_loop(self):
+        #borders for the box
+        self.draw_boundaries(Point([0, self.size[1] - 15.6/18.5 * self.size[1]]), Point([self.size[0], self.size[1] - 15.6/18.5 * self.size[1]]))
+        self.draw_boundaries(Point([self.size[0], self.size[1]]), Point([self.size[0], self.size[1] - 15.6/18.5 * self.size[1]]))
         # bottom time line
         self.weather_draw()
         self.day_schedule()
         self.print_time()
         # populating news
         self.calender_timeline_draw()
-        self.draw_boundaries()
         self.news_events_draw()
         self.reminder()
         pygame.display.update()
