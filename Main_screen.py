@@ -64,7 +64,8 @@ class GUI:
         self.reminder_radius = 6
         self.mouse_move = False
         self.new_reminder = False
-
+        self.old_reminder = False
+        self.id = 0
         self.users = open("Conf/users.conf", 'r').read().splitlines()
 
     def on_init(self):
@@ -74,7 +75,7 @@ class GUI:
         self.size = self.weight, self.height = [infoObject.current_w, infoObject.current_h]
         # objects
         self.weather_object = weather.Weather(int(0.8 / 12.0 * self.size[1]))
-        self.calender_object = calender.Calender(1)  # todo not hardcoded
+        self.calender_object = calender.Calender(self.id)  # todo not hardcoded
 
         self.ratio_outsize = 12.0 / 14.0
         self._display_surf = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
@@ -90,7 +91,12 @@ class GUI:
         thread = Thread(target=self.news_object.update_news, args=())
         thread.start()
         # drawing surface
-        self.reminder_surface = pygame.Surface([11.0 / 12.0 * self.size[0], 11.0 / 12.0 * self.size[1]],
+        if os.path.isfile("Reminders/" + str(self.id) + ".png"):
+            self.reminder_surface = pygame.image.load("Reminders/" + str(self.id) + ".png")
+            self.reminder_surface = self.reminder_surface.convert_alpha()
+            self.old_reminder = True
+        else:
+            self.reminder_surface = pygame.Surface([11.0 / 12.0 * self.size[0], 11.0 / 12.0 * self.size[1]],
                                                pygame.SRCALPHA, 32)
         self.reminder_surface = self.reminder_surface.convert_alpha()
 
@@ -173,17 +179,11 @@ class GUI:
                            min(255, 60 + int(self.news_object.curr_alpha))),
                        (12.15 / 12.0 * self.size[0], x / 12.0 * self.size[1] + (x - 0.85) * 0.01 * self.size[1],
                         1.80 / 12.0 * self.size[0], 0.8 / 12.0 * self.size[1]), self.font_cs_150)
-        #click circle
+        # click enabled circle
         pygame.gfxdraw.aacircle(self._display_surf, int(11.75 / 12.0 * self.size[0]),
                                 int((x + 0.5 + (x - 0.85) * 0.01) / 12.0 * self.size[1]),
                                 int(0.2/ 12.0 * self.size[0]), self.white)
 
-        if int(11.5 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(12.0 / 12.0 * self.size[0]) and \
-                                                (x + (x - 0.85) * 0.01) / 12.0 * self.size[1] <= \
-                self.pos_touch[1] <= int((0.7915 + x * 1.01) / 12.0 * self.size[1]) and self.clicked:
-            self.news_object.expanded_news = True
-        elif self.clicked:
-            self.news_object.expanded_news = False
         if not self.news_object.expanded_news:
             self.news_object.curr_alpha -= 0.3
             if self.news_object.curr_alpha <= 0:
@@ -197,29 +197,40 @@ class GUI:
                             6.0 / 12.0 * self.size[1]), self.font_cs_200)
 
     def reminder(self):
-        if not self.swipe_up and self.clicked and 0.5 / 12.0 * self.size[0] <= self.pos_touch[0] <= int(
-                                10.05 / 12.0 * self.size[0]) \
-                and 1.05 / 12.0 * self.size[1] <= self.pos_touch[1] <= int(6.05 / 12.0 * self.size[0]) \
-                and not self.news_object.expanded_news:
-            pygame.draw.circle(self.reminder_surface, self.white, [int(self.pos_touch[0]), int(self.pos_touch[1])],
-                               self.reminder_radius)
-            if self.mouse_move:
-                roundline(self.reminder_surface, self.white, [int(self.pos_touch[0]), int(self.pos_touch[1])],
-                          [int(self.last_pos[0]), int(self.last_pos[1])], self.reminder_radius)
-            self.new_reminder = True
-        if not self.news_object.expanded_news:
+        # main drawing of reminder
+        if self.old_reminder and self.clicked:
+            self.old_reminder = False
+            self.reminder_surface = pygame.Surface([11.0 / 12.0 * self.size[0], 11.0 / 12.0 * self.size[1]],
+                                                   pygame.SRCALPHA, 32)
+            self.reminder_surface = self.reminder_surface.convert_alpha()
+        elif self.old_reminder:
+            self._display_surf.blit(self.reminder_surface, (0, 0))
+        # ok to draw the image drawn (no news open)
+        if not self.news_object.expanded_news and not self.old_reminder:
+            if not self.swipe_up and self.clicked and 0 <= self.pos_touch[0] <= int(10.5 / 12.0 * self.size[0]) \
+                    and 2.9/18.5 * self.size[1] <= self.pos_touch[1] <= int(6.05 / 12.0 * self.size[0]) \
+                    and not self.news_object.expanded_news:
+                pygame.draw.circle(self.reminder_surface, self.white, [int(self.pos_touch[0]), int(self.pos_touch[1])],
+                                   self.reminder_radius)
+                if self.mouse_move:
+                    roundline(self.reminder_surface, self.white, [int(self.pos_touch[0]), int(self.pos_touch[1])],
+                              [int(self.last_pos[0]), int(self.last_pos[1])], self.reminder_radius)
+                self.new_reminder = True
             # draw the save button
             if self.clicked and int(11.0 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(11.5 / 12.0 * self.size[0]) \
-                    and int(2.0 / 12.0 * self.size[0]) <= self.pos_touch[1] <= int(2.1 / 12.0 * self.size[0]):
+                    and int(3.0 / 12.0 * self.size[1]) <= self.pos_touch[1] <= int(3.5 / 12.0 * self.size[1]):
                 self.new_reminder = False
                 self.reminder_surface = pygame.Surface([11.0 / 12.0 * self.size[0], 11.0 / 12.0 * self.size[1]],
                                                        pygame.SRCALPHA, 32)
-            else:
-                for i in enumerate(self.users):
-                    if self.clicked and int(11.0 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(11.5 / 12.0 * self.size[0]) \
-                        and int(2.0 / 12.0 * self.size[0]) <= self.pos_touch[1] <= int(2.1 / 12.0 * self.size[0]):
+                self.reminder_surface = self.reminder_surface.convert_alpha()
 
-                        self.reminder_surface = self.reminder_surface.convert_alpha()
+            else:
+                for pos, i in enumerate(self.users):
+                    if self.clicked and int(11.0 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(11.5 / 12.0 * self.size[0]) \
+                        and int(float(pos + 4.0) / 12.0 * self.size[1]) <= self.pos_touch[1] <= int(float(pos + 5.0) / 12.0 * self.size[1]):
+                        # saving the image for that user
+                        pygame.image.save(self.reminder_surface, "Reminders/" + str(pos) + ".png")
+                        break
             if self.new_reminder:
                 # noinspection PyTypeChecker
                 self.draw_text("Clear", self.white, (
@@ -233,7 +244,6 @@ class GUI:
             self._display_surf.blit(self.reminder_surface, (0, 0))
 
     def calender_events_draw(self):
-        # todo fix positions
         base_pos = 4
         if len(self.calender_object.events) == 0:
             # noinspection PyTypeChecker
@@ -248,10 +258,6 @@ class GUI:
                                 int((x + 0.6) / 12.0 * self.size[1]),
                                 int(0.2 / 12.0 * self.size[0]), self.white)
         #handel touch
-        if int(11.5 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(12.0 / 12.0 * self.size[0]) and \
-                                                (x + (x - 0.85) * 0.01) / 12.0 * self.size[1] <= \
-                self.pos_touch[1] <= int((0.7915 + x * 1.01) / 12.0 * self.size[1]) and self.clicked:
-            self.calender_object.selected_event = 1
 
         # event is in focus
         if self.calender_object.selected_event:
@@ -369,30 +375,6 @@ class GUI:
                                [float(i) / 12.0 * self.size[0], 11.65 / 12.0 * self.size[1],
                                 float(i + 1) / 12.0 * self.size[0], self.size[1]], self.font_cs_75)
                 time_temp += 1
-
-        #update swipeup
-        if self.bottom_timeline_pos == int(float(self.pos_touch[0]) / float(self.size[0]) * 12.0):
-            self.swipe_up = True
-        else:
-            self.swipe_up = False
-
-        # time of day thing!!
-        if not self.swipe_up and self.mouse_move:
-            if self.pos_touch[1] >= int(10.0 / 12.0 * self.size[1]) and self.pos_touch[0] <= self.size[0]:
-                # in the correct place
-                pygame.draw.lines(self._display_surf, self.green, False,
-                                  [(int(float(self.pos_touch[0]) / float(self.size[0]) * 12.0) / 12.0 * self.size[0],
-                                    11.8 / 12.0 * self.size[1]),
-                                   (int(float(self.pos_touch[0]) / float(self.size[0]) * 12.0) / 12.0 * self.size[0],
-                                    self.size[1])],
-                                  1)
-
-                self.bottom_timeline_pos = int(float(self.pos_touch[0]) / float(self.size[0]) * 12.0)
-                if self.bottom_timeline_pos > 12:
-                    self.bottom_timeline_pos = 12
-            else:
-                self.bottom_timeline_pos = -1
-                # current weather
 
     def print_time(self):
         str_time = datetime.datetime.now().strftime("%H:%M")
@@ -568,8 +550,9 @@ class GUI:
             pygame.draw.line(self._display_surf, self.white, start.get(), end.get(), width)
 
     def on_loop(self):
+        self.mouse_handling()
         #borders for the box
-        self.draw_boundaries(Point([0, self.size[1] - 15.6/18.5 * self.size[1]]), Point([self.size[0], self.size[1] - 15.6/18.5 * self.size[1]]))
+        self.draw_boundaries(Point([0, 2.9/18.5 * self.size[1]]), Point([self.size[0], self.size[1] - 15.6/18.5 * self.size[1]]))
         self.draw_boundaries(Point([self.size[0], self.size[1]]), Point([self.size[0], self.size[1] - 15.6/18.5 * self.size[1]]))
         # bottom time line
         self.weather_draw()
@@ -580,6 +563,43 @@ class GUI:
         self.news_events_draw()
         self.reminder()
         pygame.display.update()
+
+    def mouse_handling(self):
+        #timeline
+        # update swipeup
+        if self.bottom_timeline_pos == int(float(self.pos_touch[0]) / float(self.size[0]) * 12.0):
+            self.swipe_up = True
+        else:
+            self.swipe_up = False
+
+        # time of day thing!!
+        if not self.swipe_up and self.mouse_move:
+            if self.pos_touch[1] >= int(10.0 / 12.0 * self.size[1]) and self.pos_touch[0] <= self.size[0]:
+                # in the correct place
+                pygame.draw.lines(self._display_surf, self.green, False,
+                                  [(int(float(self.pos_touch[0]) / float(self.size[0]) * 12.0) / 12.0 * self.size[0],
+                                    11.8 / 12.0 * self.size[1]),
+                                   (int(float(self.pos_touch[0]) / float(self.size[0]) * 12.0) / 12.0 * self.size[0],
+                                    self.size[1])],
+                                  1)
+
+                self.bottom_timeline_pos = int(float(self.pos_touch[0]) / float(self.size[0]) * 12.0)
+                if self.bottom_timeline_pos > 12:
+                    self.bottom_timeline_pos = 12
+            else:
+                self.bottom_timeline_pos = -1
+                # current weather
+        #news_event_draw
+        if int(11.5 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(12.0 / 12.0 * self.size[0]) \
+                and 3.0215/12.0 * self.size[1] <= self.pos_touch[1] <= int(3.8215/12.0 * self.size[1]) and self.clicked:
+            self.news_object.expanded_news = True
+        elif self.clicked:
+            self.news_object.expanded_news = False
+
+        # calender circle
+        if int(11.5 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(12.0 / 12.0 * self.size[0])\
+                and 4.0315/12.0 * self.size[1] <= self.pos_touch[1] <= int(4.8315/12.0 * self.size[1]) and self.clicked:
+            self.calender_object.selected_event = 1
 
     def on_execute(self):
         if self.on_init() == False:
