@@ -1,5 +1,5 @@
 import os
-
+import Main_screen
 import cv2
 import numpy as np
 from PIL import Image
@@ -33,32 +33,40 @@ faceCascade = cv2.CascadeClassifier(cascPath)
 images, labels = get_images_and_labels("img/faces")
 recognizer = cv2.face.createLBPHFaceRecognizer()
 recognizer.train(images, np.array(labels))
-
-video_capture = cv2.VideoCapture(0)
 while True:
-    # Capture frame-by-frame
-    ret, frame = video_capture.read()
+    video_capture = cv2.VideoCapture(0)
+    found = False
+    occurrences = 0
+    user_id = -1
+    while True:
+        # Capture frame-by-frame
+        ret, frame = video_capture.read()
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    faces = faceCascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30),
-                                         flags=cv2.CASCADE_SCALE_IMAGE)
+        faces = faceCascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30),
+                                             flags=cv2.CASCADE_SCALE_IMAGE)
 
-    # Draw a rectangle around the faces
+        for (x, y, w, h) in faces:
+            if w * h > 10000:
+                nbr_predicted, conf = recognizer.predict(gray[y: y + h, x: x + w])
+                if nbr_predicted != user_id:
+                    user_id = nbr_predicted
+                    occurrences = 1
+                else:
+                    occurrences += 1
+                print(nbr_predicted, conf)
+        # Display the resulting frame, to remove later
+        cv2.imshow('Video', frame)
 
-    for (x, y, w, h) in faces:
-        if w * h > 50000:
-            # cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            # cv2.imwrite( "test/" + str(i) + ".jpg", frame[y:y+h, x:x+w])
-            # i+=1
-            nbr_predicted, conf = recognizer.predict(gray[y: y + h, x: x + w])
-            print(nbr_predicted, conf)
-    # Display the resulting frame
-    cv2.imshow('Video', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        if occurrences > 10:
+            break
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# When everything is done, release the capture
-video_capture.release()
-cv2.destroyAllWindows()
+    # When everything is done, release the capture
+    video_capture.release()
+    cv2.destroyAllWindows()
+    #start the main screen
+    theApp = Main_screen.GUI(user_id)
+    theApp.on_execute()

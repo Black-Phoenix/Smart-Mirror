@@ -16,14 +16,13 @@ from oauth2client.file import Storage
 import datetime
 import time
 
-
-
-
 try:
     import argparse
+
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
+
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/calendar-python-quickstart.json
@@ -47,12 +46,14 @@ class Calender:
                 timestamp = i["start"]["dateTime"]
             elif "date" in i["start"]:
                 timestamp = i["start"]["date"]
-            i["start"] = math.ceil((iso8601.parse_date(timestamp) - datetime.datetime.now(timezone('Asia/Calcutta'))).total_seconds() / 3600)
+            i["start"] = math.ceil((iso8601.parse_date(timestamp) - datetime.datetime.now(
+                timezone('Asia/Calcutta'))).total_seconds() / 3600)
             if "dateTime" in i["end"]:
                 timestamp = i["end"]["dateTime"]
             elif "date" in i["end"]:
                 timestamp = i["end"]["date"]
-            i["end"] = math.ceil((iso8601.parse_date(timestamp) - datetime.datetime.now(timezone('Asia/Calcutta'))).total_seconds() / 3600)
+            i["end"] = math.ceil((iso8601.parse_date(timestamp) - datetime.datetime.now(
+                timezone('Asia/Calcutta'))).total_seconds() / 3600)
         return events
 
     def fix_text(self, events):
@@ -60,6 +61,7 @@ class Calender:
             if "summary" not in i:
                 i["summary"] = "No Title"
         return events
+
     def get_credentials(self):
         home_dir = os.path.expanduser('~')
         credential_dir = os.path.join(home_dir, '.credentials')

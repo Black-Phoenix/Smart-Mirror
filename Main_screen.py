@@ -45,6 +45,7 @@ class GUI:
     def __init__(self, id = 0):
         self._running = True
         self._display_surf = None
+        self.time_since_last_click = 0.0
         self.red = (255, 0, 0)
         self.green = (0, 255, 0)
         self.blue = (0, 0, 255)
@@ -104,9 +105,11 @@ class GUI:
             self._running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.clicked = True
+            self.time_since_last_click = 0.0
         elif event.type == pygame.MOUSEBUTTONUP:
             self.clicked = False
             self.mouse_move = False
+            self.time_since_last_click = 0.0
         if event.type == pygame.MOUSEMOTION:
             self.mouse_move = True
             self.last_pos = self.pos_touch
@@ -549,6 +552,8 @@ class GUI:
             pygame.draw.line(self._display_surf, self.white, start.get(), end.get(), width)
 
     def on_loop(self):
+        if int(self.time_since_last_click) > 10:
+            self._running = False
         self.mouse_handling()
         #borders for the box
         self.draw_boundaries(Point([0, 2.9/18.5 * self.size[1]]), Point([self.size[0], self.size[1] - 15.6/18.5 * self.size[1]]))
@@ -615,7 +620,7 @@ class GUI:
             #self.pos_touch[1] = self.size[1] - 15.6/18.5 * (self.size[1] - self.pos_touch[1])
             self.on_loop()
             self.clock.tick(60)
-
+            self.time_since_last_click += 1.0/60.0
         on_cleanup()
 
 
