@@ -125,7 +125,7 @@ def facebook_success():
     if code == None:
         return redirect("/")
     else:
-        id = request.args.get('id')
+        id = find_id(user_conf) - 1
         access_token_short = get_fbtoken.code_to_access_token(code)
         final_access_token = get_fbtoken.short_to_long_term_token(access_token_short)
         print(final_access_token)
@@ -146,7 +146,7 @@ def upload_images():
         inc += 1
     fix_images(id)
     session["id"] = id + 1
-    # os.popen('rm -f ./test/*')
+    os.popen('rm -f ./test/*')
     return "Successfully Added User"
 
 

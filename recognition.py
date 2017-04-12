@@ -27,13 +27,12 @@ def get_images_and_labels(path):
     # return the images list and labels list
     return images, labels
 
-
-cascPath = "Conf/haarcascade_frontalface_default.xml"
-faceCascade = cv2.CascadeClassifier(cascPath)
-images, labels = get_images_and_labels("img/faces")
-recognizer = cv2.face.createLBPHFaceRecognizer()
-recognizer.train(images, np.array(labels))
 while True:
+    cascPath = "Conf/haarcascade_frontalface_default.xml"
+    faceCascade = cv2.CascadeClassifier(cascPath)
+    images, labels = get_images_and_labels("img/faces")
+    recognizer = cv2.face.createLBPHFaceRecognizer()
+    recognizer.train(images, np.array(labels))
     video_capture = cv2.VideoCapture(0)
     found = False
     occurrences = 0

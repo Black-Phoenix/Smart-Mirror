@@ -5,9 +5,9 @@ fb_profile_id = "adithyabhatk"
 
 class Post():
     def __init__(self):
-        self.title = ""
+        self.title = "No Title"
         self.id = ""
-        self.msg = ""
+        self.msg = "No Body"
 
 
 def preprocess_data(data):
@@ -22,9 +22,20 @@ def preprocess_data(data):
         posts.append(temp)
     return posts
 
+updating = False
+post_data = []
+id = 0
+curr_fb_item = 0
+curr_alpha = 255 * 2.0
+expanded_post = False
 
-def get_posts(access_token):
+def get_posts():
+    global updating, post_data, id
+    updating = True
+    f = open("Conf/facebook/" + str(id)+ ".conf")
+    access_token = f.readline()
     facebook_graph = fb.GraphAPI(access_token)
     feeds = facebook_graph.get_connections("me", "feed")
     data = feeds['data']
-    return preprocess_data(data)
+    updating = False
+    post_data = preprocess_data(data)

@@ -9,6 +9,7 @@ import calender
 import weather
 import sprite
 import time
+import posts
 from point import Point
 
 
@@ -99,6 +100,11 @@ class GUI:
             self.reminder_surface = pygame.Surface([11.0 / 12.0 * self.size[0], 11.0 / 12.0 * self.size[1]],
                                                pygame.SRCALPHA, 32)
         self.reminder_surface = self.reminder_surface.convert_alpha()
+        # facebook posts
+        posts.id = self.id
+        thread = Thread(target=posts.get_posts, args=())
+        thread.start()
+
 
     def on_event(self, event):
         if event.type == pygame.QUIT:
@@ -205,13 +211,14 @@ class GUI:
             self.reminder_surface = pygame.Surface([11.0 / 12.0 * self.size[0], 11.0 / 12.0 * self.size[1]],
                                                    pygame.SRCALPHA, 32)
             self.reminder_surface = self.reminder_surface.convert_alpha()
+            os.popen('rm ./Reminders/' + str(self.id) + ".png")
         elif self.old_reminder:
             self._display_surf.blit(self.reminder_surface, (0, 0))
         # ok to draw the image drawn (no news open)
-        if not self.news_object.expanded_news and not self.old_reminder:
+        if not self.news_object.expanded_news and not self.old_reminder and not posts.expanded_post:
             if not self.swipe_up and self.clicked and 0 <= self.pos_touch[0] <= int(10.5 / 12.0 * self.size[0]) \
                     and 2.9/18.5 * self.size[1] <= self.pos_touch[1] <= int(6.05 / 12.0 * self.size[0]) \
-                    and not self.news_object.expanded_news:
+                    and not self.news_object.expanded_news and not posts.expanded_post:
                 pygame.draw.circle(self.reminder_surface, self.white, [int(self.pos_touch[0]), int(self.pos_touch[1])],
                                    self.reminder_radius)
                 if self.mouse_move:
@@ -551,8 +558,42 @@ class GUI:
             end = origin + (slope * (index + 1) * dash_length)
             pygame.draw.line(self._display_surf, self.white, start.get(), end.get(), width)
 
+    def draw_facebook(self):
+        if posts.updating == True:
+            return
+        x = 5.0  # 5rd position
+        pygame.gfxdraw.box(self._display_surf, pygame.Rect(12.1 / 12.0 * self.size[0],
+                                                           x / 12.0 * self.size[1] + (x - 1) * 0.01 * self.size[1],
+                                                           2.0 / 12.0 * self.size[0],
+                                                           0.8 / 12.0 * self.size[1]),
+                           (255, 255, 255, min(40, int(posts.curr_alpha))))
+        # noinspection PyTypeChecker
+        self.draw_text(posts.post_data[posts.curr_fb_item].title,
+                       (
+                           min(255, 60 + int(posts.curr_alpha)),
+                           min(255, 60 + int(posts.curr_alpha)),
+                           min(255, 60 + int(posts.curr_alpha))),
+                       (12.15 / 12.0 * self.size[0], x / 12.0 * self.size[1] + (x - 0.85) * 0.01 * self.size[1],
+                        1.80 / 12.0 * self.size[0], 0.8 / 12.0 * self.size[1]), self.font_cs_150)
+        # click enabled circle
+        pygame.gfxdraw.aacircle(self._display_surf, int(11.75 / 12.0 * self.size[0]),
+                                int((x + 0.75 + (x - 0.85) * 0.01) / 12.0 * self.size[1]),
+                                int(0.2 / 12.0 * self.size[0]), self.white)
+
+        if not posts.expanded_post:
+            posts.curr_alpha -= 0.3
+            if posts.curr_alpha <= 0:
+                posts.curr_alpha = 225 * 2.0
+                posts.curr_news_item = (posts.curr_fb_item + 1) % len(posts.post_data)
+        else:
+            print(posts.post_data[posts.curr_fb_item].msg)
+            # noinspection PyTypeChecker
+            self.draw_text(posts.post_data[posts.curr_fb_item].msg, (255, 255, 255),
+                           (3.05 / 12.0 * self.size[0], 2.05 / 12.0 * self.size[1], 7.0 / 12.0 * self.size[0],
+                            6.0 / 12.0 * self.size[1]), self.font_cs_200)
+
     def on_loop(self):
-        if int(self.time_since_last_click) > 10:
+        if int(self.time_since_last_click) > 10*60:
             self._running = False
         self.mouse_handling()
         #borders for the box
@@ -566,6 +607,7 @@ class GUI:
         self.calender_timeline_draw()
         self.news_events_draw()
         self.reminder()
+        self.draw_facebook()
         pygame.display.update()
 
     def mouse_handling(self):
@@ -604,6 +646,14 @@ class GUI:
         if int(11.5 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(12.0 / 12.0 * self.size[0])\
                 and 4.0315/12.0 * self.size[1] <= self.pos_touch[1] <= int(4.8315/12.0 * self.size[1]) and self.clicked:
             self.calender_object.selected_event = 1
+
+        #facebook click
+        if int(11.5 / 12.0 * self.size[0]) <= self.pos_touch[0] <= int(12.0 / 12.0 * self.size[0]) \
+                and 5.5915 / 12.0 * self.size[1] <= self.pos_touch[1] <= int(
+                                    6.15 / 12.0 * self.size[1]) and self.clicked:
+            posts.expanded_post = True
+        elif self.clicked:
+            posts.expanded_post = False
 
     def on_execute(self):
         if self.on_init() == False:

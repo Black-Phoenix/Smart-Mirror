@@ -12,7 +12,7 @@ class News:
         self.news_bodies = []
         self.diffbot_api_key = 'c19e6ec5802ff6fdde5a483d37851b5e'
         self.timeline = False #change to true when timeline is ready
-        self.curr_alpha = 255 * 2.0
+        self.curr_alpha = 255 * 2.0 # for the delay
         self.curr_news_item = 0
         self.expanded_news = False
 
