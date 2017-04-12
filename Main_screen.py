@@ -586,7 +586,6 @@ class GUI:
                 posts.curr_alpha = 225 * 2.0
                 posts.curr_news_item = (posts.curr_fb_item + 1) % len(posts.post_data)
         else:
-            print(posts.post_data[posts.curr_fb_item].msg)
             # noinspection PyTypeChecker
             self.draw_text(posts.post_data[posts.curr_fb_item].msg, (255, 255, 255),
                            (3.05 / 12.0 * self.size[0], 2.05 / 12.0 * self.size[1], 7.0 / 12.0 * self.size[0],
