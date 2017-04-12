@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
+
 def get_images_and_labels(path):
     # Append all the absolute image paths in a list image_paths
     # We will not read the image with the .sad extension in the training set
@@ -26,6 +27,7 @@ def get_images_and_labels(path):
     # return the images list and labels list
     return images, labels
 
+
 cascPath = "Conf/haarcascade_frontalface_default.xml"
 faceCascade = cv2.CascadeClassifier(cascPath)
 images, labels = get_images_and_labels("img/faces")
@@ -45,10 +47,10 @@ while True:
     # Draw a rectangle around the faces
 
     for (x, y, w, h) in faces:
-        if w*h > 50000:
-            #cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            #cv2.imwrite( "test/" + str(i) + ".jpg", frame[y:y+h, x:x+w])
-            #i+=1
+        if w * h > 50000:
+            # cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            # cv2.imwrite( "test/" + str(i) + ".jpg", frame[y:y+h, x:x+w])
+            # i+=1
             nbr_predicted, conf = recognizer.predict(gray[y: y + h, x: x + w])
             print(nbr_predicted, conf)
     # Display the resulting frame
