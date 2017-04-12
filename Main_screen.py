@@ -43,7 +43,7 @@ def blurSurf(surface, amt):
 
 
 class GUI:
-    def __init__(self):
+    def __init__(self, id = 0):
         self._running = True
         self._display_surf = None
         self.red = (255, 0, 0)
@@ -65,7 +65,7 @@ class GUI:
         self.mouse_move = False
         self.new_reminder = False
         self.old_reminder = False
-        self.id = 0
+        self.id = id
         self.users = open("Conf/users.conf", 'r').read().splitlines()
 
     def on_init(self):
