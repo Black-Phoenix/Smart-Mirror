@@ -63,18 +63,18 @@ def fix_images(id):
         # Convert the image format into numpy array
         image = np.array(image_pil, 'uint8')
         # Get the label of the image
-        faces = faceCascade.detectMultiScale(image)
+        faces = faces = faceCascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=3, minSize=(30, 30),
+                                                     flags=cv2.CASCADE_SCALE_IMAGE)
         # If face is detected, append the face to images and the label to labels
         for (x, y, w, h) in faces:
-            if w * h > 9000:
-                cv2.imwrite("img/faces/" + str(id) +"."+ str(i)+ ".jpg", image[y:y + h, x:x + w])
-                i+=1
+            cv2.imwrite("img/faces/" + str(id) + "." + str(i) + ".jpg", image[y:y + h, x:x + w])
+            i += 1
 
 
 def save_data(user_name, credentials):
     id = find_id(user_conf)
     f = open("Conf/users.conf", "a+")
-    f.write("\n" + user_name)
+    f.write(user_name + "\n")
     f.close()
     credential_path = os.path.join(credential_dir,
                                    'calendar-mirror-' + str(id) + '.json')
@@ -90,6 +90,7 @@ def login():
             error = 'Invalid Credentials. Please try again.'
         else:
             session['id'] = find_id(user_conf)
+            session.modified = True
             print(find_id(user_conf))
             return redirect("/")
     return render_template('login.html', error=error)
@@ -136,13 +137,13 @@ def upload_images():
     uploaded_files = request.files.getlist("file[]")
     print(uploaded_files)
     inc = 0
-    print(session['id'])
+    id = find_id(user_conf) - 1
     for file in uploaded_files:
-        file.save(os.path.join(os.getcwd() + "/test", str(session['id']) + "." + str(inc)))
+        file.save(os.path.join(os.getcwd() + "/test", str(id) + "." + str(inc)))
         inc += 1
-    fix_images(session["id"])
-    session["id"] += 1
-    os.popen('rm -f ./test/*')
+    fix_images(id)
+    session["id"] = id + 1
+    # os.popen('rm -f ./test/*')
     return "Successfully Added User"
 
 
