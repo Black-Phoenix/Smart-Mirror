@@ -26,5 +26,6 @@ def preprocess_data(data):
 def get_posts(access_token):
     facebook_graph = fb.GraphAPI(access_token)
     feeds = facebook_graph.get_connections("me", "feed")
+    print(feeds)
     data = feeds['data']
     return preprocess_data(data)

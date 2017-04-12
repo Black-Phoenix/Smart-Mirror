@@ -7,6 +7,7 @@ from googleapiclient import discovery
 import get_fbtoken
 from oauth2client import client
 import cv2
+import posts
 from oauth2client.file import Storage
 from PIL import Image
 
@@ -125,10 +126,12 @@ def facebook_success():
         return redirect("/")
     else:
         id = request.args.get('id')
-        # access_token_short = get_fbtoken.code_to_access_token(code)
-        # final_access_token = get_fbtoken.short_to_long_term_token(access_token_short)
-        # f = open("Conf/facebook/" + str(id) + ".conf", "w")
-        # f.write(final_access_token)
+        access_token_short = get_fbtoken.code_to_access_token(code)
+        final_access_token = get_fbtoken.short_to_long_term_token(access_token_short)
+        print(final_access_token)
+        print(posts.get_posts(final_access_token))
+        f = open("Conf/facebook/" + str(id) + ".conf", "w")
+        f.write(final_access_token)
         return render_template("images.html")
 
 
@@ -152,5 +155,5 @@ def start():
     app.config['SESSION_TYPE'] = 'filesystem'
     app.run(host='127.0.0.1', port=8080)
 
-
-start()
+if __name__ == '__main__':
+    start()
