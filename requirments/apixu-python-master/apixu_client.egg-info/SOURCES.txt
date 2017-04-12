@@ -1,0 +1,8 @@
+setup.py
+apixu/__init__.py
+apixu/client.py
+apixu_client.egg-info/PKG-INFO
+apixu_client.egg-info/SOURCES.txt
+apixu_client.egg-info/dependency_links.txt
+apixu_client.egg-info/requires.txt
+apixu_client.egg-info/top_level.txt
