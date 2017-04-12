@@ -6,13 +6,13 @@ client_secret = "d3166755d7f0053694a0a07f6dfedc52"
 
 
 def get_authentication_url():
-    perms = ['read_page_mailboxes',
-             'manage_pages',
-             'publish_pages']
-    canvas_url = 'http://localhost:8080/fb/success'
-    fb_url = fb.auth_url(app_id=app_id, canvas_url=canvas_url, perms=perms)
-    return fb_url
-
+	perms = ['read_page_mailboxes',
+		'user_posts',
+	    'manage_pages',
+	    'publish_pages']
+	canvas_url = 'http://localhost:8080/fb/success'
+	fb_url = fb.auth_url(app_id=app_id,canvas_url=canvas_url,perms=perms)
+	return fb_url
 
 def short_to_long_term_token(code):
     url = "https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&"
